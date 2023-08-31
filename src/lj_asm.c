@@ -2485,7 +2485,7 @@ void lj_asm_trace(jit_State *J, GCtrace *T)
   as->loopinv = 0;
   as->parent = J->parent ? traceref(J, J->parent) : NULL;
 #ifdef LUAJIT_RANDOM_RA
-  (void)lj_prng_u64(&J2G(J)->prng);  /* Ensure PRNG step between traces. */
+  (void)lj_prng_u64(&J->raprng);  /* Ensure PRNG step between traces. */
 #endif
 
   /* Reserve MCode memory. */
@@ -2529,7 +2529,8 @@ void lj_asm_trace(jit_State *J, GCtrace *T)
     as->ir = J->curfinal->ir;  /* Use the copied IR. */
     as->curins = J->cur.nins = as->orignins;
 #ifdef LUAJIT_RANDOM_RA
-    as->prngstate = J2G(J)->prng;  /* Must (re)start from identical state. */
+    /* Must (re)start from identical state. */
+    as->prngstate = J->raprng;
     as->prngbits = 0;
 #endif
 

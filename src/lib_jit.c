@@ -27,6 +27,9 @@
 #include "lj_ircall.h"
 #include "lj_iropt.h"
 #include "lj_target.h"
+#if LUAJIT_RANDOM_RA
+#include "lj_prng.h"
+#endif
 #endif
 #include "lj_trace.h"
 #include "lj_dispatch.h"
@@ -85,6 +88,16 @@ LJLIB_CF(jit_flush)
   }
 #endif
   return setjitmode(L, LUAJIT_MODE_FLUSH);
+}
+
+/* Set random seed for register allocation. */
+LJLIB_CF(jit_rarandomseed)
+{
+#if LJ_HASJIT && LUAJIT_RANDOM_RA
+  PRNGState *rs = &L2J(L)->raprng;
+  lj_prng_random_seed(rs, lj_lib_checknum(L, 1));
+#endif
+  return 0;
 }
 
 #if LJ_HASJIT

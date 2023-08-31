@@ -323,6 +323,13 @@ void lj_trace_initstate(global_State *g)
   tv[0].u64 = U64x(80000000,00000000);
   tv[1].u64 = U64x(80000000,00000000);
 
+#if LUAJIT_RANDOM_RA
+  if (!lj_prng_seed_secure(&J->raprng)) {
+    lj_assertJ(0, "secure PRNG seeding failed");
+    /* Fallback to the constant seed. OK for testing usage. */
+    lj_prng_seed_fixed(&J->raprng);
+  }
+#endif
   /* Initialize 32/64 bit constants. */
 #if LJ_TARGET_X86ORX64
   J->k64[LJ_K64_TOBIT].u64 = U64x(43380000,00000000);

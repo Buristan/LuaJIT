@@ -257,3 +257,19 @@ ok:
 
 #endif
 
+/* PRNG seeding function. */
+LJ_NOINLINE void LJ_FASTCALL lj_prng_random_seed(PRNGState *rs, double d)
+{
+  uint32_t r = 0x11090601;  /* 64-k[i] as four 8 bit constants. */
+  int i;
+  for (i = 0; i < 4; i++) {
+    U64double u;
+    uint32_t m = 1u << (r&255);
+    r >>= 8;
+    u.d = d = d * 3.14159265358979323846 + 2.7182818284590452354;
+    if (u.u64 < m) u.u64 += m;  /* Ensure k[i] MSB of u[i] are non-zero. */
+    rs->u[i] = u.u64;
+  }
+  for (i = 0; i < 10; i++)
+    (void)lj_prng_u64(rs);
+}
