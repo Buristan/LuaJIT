@@ -663,10 +663,16 @@ static void LJ_FASTCALL recff_math_minmax(jit_State *J, RecordFFData *rd)
 
 static void LJ_FASTCALL recff_math_random(jit_State *J, RecordFFData *rd)
 {
+#ifndef LUAJIT_RANDOM_RA
   GCudata *ud = udataV(&J->fn->c.upvalue[0]);
+#endif
   TRef tr, one;
+#ifndef LUAJIT_RANDOM_RA
   lj_ir_kgc(J, obj2gco(ud), IRT_UDATA);  /* Prevent collection. */
   tr = lj_ir_call(J, IRCALL_lj_prng_u64d, lj_ir_kptr(J, uddata(ud)));
+#else
+  tr = lj_ir_call(J, IRCALL_lj_prng_u64d, lj_ir_kptr(J, &J2G(J)->prng));
+#endif
   one = lj_ir_knum_one(J);
   tr = emitir(IRTN(IR_SUB), tr, one);
   if (J->base[0]) {

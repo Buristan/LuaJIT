@@ -127,11 +127,17 @@ static void random_seed(PRNGState *rs, double d)
 }
 
 /* PRNG extract function. */
+#if !(LJ_HASJIT && LUAJIT_RANDOM_RA)
 LJLIB_PUSH(top-2)  /* Upvalue holds userdata with PRNGState. */
+#endif
 LJLIB_CF(math_random)		LJLIB_REC(.)
 {
   int n = (int)(L->top - L->base);
+#if !(LJ_HASJIT && LUAJIT_RANDOM_RA)
   PRNGState *rs = (PRNGState *)(uddata(udataV(lj_lib_upvalue(L, 1))));
+#else
+  PRNGState *rs = &G(L)->prng;
+#endif
   U64double u;
   double d;
   u.u64 = lj_prng_u64d(rs);
@@ -179,10 +185,16 @@ LJLIB_CF(math_random)		LJLIB_REC(.)
 }
 
 /* PRNG seed function. */
+#if !(LJ_HASJIT && LUAJIT_RANDOM_RA)
 LJLIB_PUSH(top-2)  /* Upvalue holds userdata with PRNGState. */
+#endif
 LJLIB_CF(math_randomseed)
 {
+#if !(LJ_HASJIT && LUAJIT_RANDOM_RA)
   PRNGState *rs = (PRNGState *)(uddata(udataV(lj_lib_upvalue(L, 1))));
+#else
+  PRNGState *rs = &G(L)->prng;
+#endif
   random_seed(rs, lj_lib_checknum(L, 1));
   return 0;
 }
@@ -193,9 +205,14 @@ LJLIB_CF(math_randomseed)
 
 LUALIB_API int luaopen_math(lua_State *L)
 {
+#if !(LJ_HASJIT && LUAJIT_RANDOM_RA)
   PRNGState *rs = (PRNGState *)lua_newuserdata(L, sizeof(PRNGState));
   lj_prng_seed_fixed(rs);
   LJ_LIB_REG(L, LUA_MATHLIBNAME, math);
   return 1;
+#else
+  LJ_LIB_REG(L, LUA_MATHLIBNAME, math);
+  return 0;
+#endif
 }
 
